@@ -10,6 +10,7 @@
 /coverage
 
 # next.js
+_next/
 /.next/
 /out/
 
@@ -27,6 +28,7 @@ yarn-error.log*
 
 # local env files
 .env*.local
+.env
 
 # vercel
 .vercel
