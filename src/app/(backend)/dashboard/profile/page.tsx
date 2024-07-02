@@ -1,7 +1,12 @@
 import React from "react";
+import BasicInfo from "./BasicInfo";
 
 const page = () => {
-  return <div>profile</div>;
+  return (
+    <div>
+      <BasicInfo />
+    </div>
+  );
 };
 
 export default page;

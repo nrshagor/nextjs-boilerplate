@@ -21,7 +21,7 @@ export function middleware(req: NextRequest) {
 
     // Define protected paths and their required roles
     const rolePaths: { [key: string]: string[] } = {
-      "/dashboard/profile": ["admin"],
+      "/dashboard/profile": ["admin", "user"],
       "/dashboard/": ["admin", "user"],
       // "/dashboard/userlist": ["admin"],
       // "/dashboard/productlist": ["admin", "user"],
