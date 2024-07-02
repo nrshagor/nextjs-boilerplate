@@ -2,6 +2,7 @@
 import CustomModal from "@/app/components/CustomModal";
 import axios from "axios";
 import { setCookie } from "cookie-handler-pro";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 
@@ -38,6 +39,7 @@ const Login = () => {
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
     setVerificationIdentifier(e.target.value);
+    console.log(e.target.value);
   };
 
   const handleVerify = async () => {
@@ -168,6 +170,9 @@ const Login = () => {
         />
         <button type="submit">Login</button>
       </form>
+
+      {/* Verification Modal */}
+
       <CustomModal isOpen={isModalOpen} onClose={closeModal}>
         <h2>Verification Needed</h2>
         <p>{modalContent}</p>
@@ -185,6 +190,7 @@ const Login = () => {
         />
         <button onClick={handleVerify}>Submit</button>
       </CustomModal>
+      <Link href="/forget-password">Forget Password</Link>
     </div>
   );
 };
