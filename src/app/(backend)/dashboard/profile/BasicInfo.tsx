@@ -1,9 +1,17 @@
 "use client";
+import { auth } from "@/app/utils/jwt";
 import axios from "axios";
 import { getCookie } from "cookie-handler-pro";
 import { jwtDecode } from "jwt-decode";
 import React, { useEffect, useState } from "react";
-
+export interface DecodedToken {
+  sub: number; // Example property types; adjust as per your JWT structure
+  email: string;
+  role: string;
+  iat: number;
+  exp: number;
+  [key: string]: any; // Allow for additional properties
+}
 const BasicInfo = () => {
   const [formData, setFormData] = useState({
     firstName: "",
@@ -15,40 +23,43 @@ const BasicInfo = () => {
     buildingAddress: "",
   });
 
+  const userId = auth()?.sub;
+
   useEffect(() => {
     const fetchData = async () => {
-      try {
-        const token = getCookie("token");
-        const userId = jwtDecode("token");
-        const url = `${process.env.NEXT_PUBLIC_API_URL}/auth/user-info/${userId}`;
+      if (userId !== null) {
+        try {
+          const token = getCookie("token");
+          const url = `${process.env.NEXT_PUBLIC_API_URL}/auth/user-info/${userId}`;
 
-        const response = await axios.get(url, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+          const response = await axios.get(url, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
 
-        const userData = response.data;
-        setFormData({
-          firstName: userData.firstName,
-          lastname: userData.lastname,
-          division: userData.division,
-          district: userData.district,
-          thana: userData.thana,
-          postalCode: userData.postalCode,
-          buildingAddress: userData.buildingAddress,
-        });
-      } catch (error) {
-        if (axios.isAxiosError(error)) {
-          console.error("Error response:", error.response?.data);
-        } else {
-          console.error("Unexpected error:", error);
+          const userData = response.data;
+          setFormData({
+            firstName: userData.firstName,
+            lastname: userData.lastname,
+            division: userData.division,
+            district: userData.district,
+            thana: userData.thana,
+            postalCode: userData.postalCode,
+            buildingAddress: userData.buildingAddress,
+          });
+        } catch (error) {
+          if (axios.isAxiosError(error)) {
+            console.error("Error response:", error.response?.data);
+          } else {
+            console.error("Unexpected error:", error);
+          }
         }
       }
     };
 
     fetchData();
-  }, []);
+  }, [userId]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
