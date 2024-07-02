@@ -130,7 +130,11 @@ const Login = () => {
     event.preventDefault();
     await handleLogin();
   };
-
+  // passowrd show and hide
+  const [showPassword, setShowPassword] = useState(false);
+  const togglePasswordVisibility = () => {
+    setShowPassword((prevShowPassword) => !prevShowPassword);
+  };
   return (
     <div>
       <form onSubmit={handleSubmit}>
@@ -163,11 +167,15 @@ const Login = () => {
           onChange={handleInputChange}
         />
         <input
-          type="password"
+          type={showPassword ? "text" : "password"}
           name="password"
           placeholder="Password"
           onChange={handleInputChange}
         />
+        <button type="button" onClick={togglePasswordVisibility}>
+          {showPassword ? "Hide" : "Show"}
+        </button>
+        <br />
         <button type="submit">Login</button>
       </form>
 
@@ -182,6 +190,7 @@ const Login = () => {
           value={verificationIdentifier}
           onChange={handleVerificationIdentifierChange}
         />
+
         <input
           type="text"
           placeholder="Enter verification code"
