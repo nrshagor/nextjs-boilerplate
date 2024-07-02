@@ -13,7 +13,7 @@ const Register = () => {
   const [verificationCode, setVerificationCode] = useState("");
   const [verificationEmail, setVerificationEmail] = useState("");
   const [verificationPhone, setVerificationPhone] = useState("");
-
+  const [errors, setErrors] = useState("");
   const openModal = (content: any) => {
     setModalContent(content);
     setIsModalOpen(true);
@@ -32,6 +32,13 @@ const Register = () => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
+    if (name == "password") {
+      if (formData.password.length < 5) {
+        setErrors("Password must be at least 6 characters");
+      } else {
+        setErrors("");
+      }
+    }
   };
 
   const handleVerificationCodeChange = (
@@ -194,7 +201,16 @@ const Register = () => {
       await handleLogin();
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        console.error("Registration error response:", error.response?.data);
+        console.error(
+          "Registration error response:",
+          error.response?.data.message
+        );
+        const isArray = Array.isArray(error.response?.data.message);
+        if (!isArray) {
+          setErrors(error.response?.data.message);
+        } else {
+          setErrors(error.response?.data.message[0]);
+        }
       } else {
         console.error("Unexpected error:", error);
       }
@@ -217,6 +233,7 @@ const Register = () => {
               />
               Email Registration
             </label>
+
             <label>
               <input
                 type="radio"
@@ -255,6 +272,7 @@ const Register = () => {
             placeholder="Password"
             onChange={handleInputChange}
           />
+          {errors && <p style={{ color: "red" }}>{errors}</p>}
           <input
             type="password"
             name="confirmPassword"
@@ -289,8 +307,7 @@ const Register = () => {
           onChange={handleVerificationCodeChange}
         />
         <button
-          onClick={emailRegistration ? handleVerifyEmail : handleVerifyPhone}
-        >
+          onClick={emailRegistration ? handleVerifyEmail : handleVerifyPhone}>
           Submit
         </button>
       </CustomModal>

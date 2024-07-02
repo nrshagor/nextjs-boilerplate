@@ -2,6 +2,7 @@
 import CustomModal from "@/app/components/CustomModal";
 import axios from "axios";
 import { setCookie } from "cookie-handler-pro";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 
@@ -38,6 +39,7 @@ const Login = () => {
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
     setVerificationIdentifier(e.target.value);
+    console.log(e.target.value);
   };
 
   const handleVerify = async () => {
@@ -128,7 +130,11 @@ const Login = () => {
     event.preventDefault();
     await handleLogin();
   };
-
+  // passowrd show and hide
+  const [showPassword, setShowPassword] = useState(false);
+  const togglePasswordVisibility = () => {
+    setShowPassword((prevShowPassword) => !prevShowPassword);
+  };
   return (
     <div>
       <form onSubmit={handleSubmit}>
@@ -161,13 +167,20 @@ const Login = () => {
           onChange={handleInputChange}
         />
         <input
-          type="password"
+          type={showPassword ? "text" : "password"}
           name="password"
           placeholder="Password"
           onChange={handleInputChange}
         />
+        <button type="button" onClick={togglePasswordVisibility}>
+          {showPassword ? "Hide" : "Show"}
+        </button>
+        <br />
         <button type="submit">Login</button>
       </form>
+
+      {/* Verification Modal */}
+
       <CustomModal isOpen={isModalOpen} onClose={closeModal}>
         <h2>Verification Needed</h2>
         <p>{modalContent}</p>
@@ -177,6 +190,7 @@ const Login = () => {
           value={verificationIdentifier}
           onChange={handleVerificationIdentifierChange}
         />
+
         <input
           type="text"
           placeholder="Enter verification code"
@@ -185,6 +199,7 @@ const Login = () => {
         />
         <button onClick={handleVerify}>Submit</button>
       </CustomModal>
+      <Link href="/forget-password">Forget Password</Link>
     </div>
   );
 };
