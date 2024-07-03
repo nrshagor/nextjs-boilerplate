@@ -3,6 +3,7 @@ import { auth } from "@/app/utils/jwt";
 import axios from "axios";
 import { getCookie } from "cookie-handler-pro";
 import Image from "next/image";
+import Link from "next/link";
 import React, { useEffect, useState } from "react";
 
 const BasicInfo = () => {
@@ -300,6 +301,7 @@ const BasicInfo = () => {
           ))}
         </div>
       </div>
+      <Link href="change-password">change-password</Link>
     </div>
   );
 };
