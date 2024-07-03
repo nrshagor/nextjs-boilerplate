@@ -2,6 +2,7 @@
 import { auth } from "@/app/utils/jwt";
 import axios from "axios";
 import { getCookie } from "cookie-handler-pro";
+import Image from "next/image";
 import React, { useEffect, useState } from "react";
 
 const BasicInfo = () => {
@@ -19,12 +20,25 @@ const BasicInfo = () => {
   const userId = auth()?.sub;
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [multipleFiles, setMultipleFiles] = useState<File[]>([]);
+  const [multiplePreviewUrls, setMultiplePreviewUrls] = useState<string[]>([]);
+  const [uploadedImageUrls, setUploadedImageUrls] = useState<string[]>([]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const selectedFile = e.target.files[0];
       setFile(selectedFile);
       setPreviewUrl(URL.createObjectURL(selectedFile));
+    }
+  };
+
+  const handleMultipleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const selectedFiles = Array.from(e.target.files);
+      setMultipleFiles(selectedFiles);
+      setMultiplePreviewUrls(
+        selectedFiles.map((file) => URL.createObjectURL(file))
+      );
     }
   };
 
@@ -52,6 +66,7 @@ const BasicInfo = () => {
             buildingAddress: userData.buildingAddress,
             profilePictureUrl: userData.profilePictureUrl,
           });
+          setUploadedImageUrls(userData.profilePictureUrls || []);
         } catch (error) {
           if (axios.isAxiosError(error)) {
             console.error("Error response:", error.response?.data);
@@ -111,6 +126,48 @@ const BasicInfo = () => {
         });
 
         console.log("Image upload:", uploadResponse.data);
+
+        // Update the state with the new uploaded single image's URL
+        setFormData((prevState) => ({
+          ...prevState,
+          profilePictureUrl: uploadResponse.data.profilePictureUrl,
+        }));
+
+        // Clear the single image preview
+        setFile(null);
+        setPreviewUrl(null);
+      }
+
+      // If multiple files are selected, upload them
+      if (multipleFiles.length > 0) {
+        const multipleFormData = new FormData();
+        multipleFiles.forEach((file) => {
+          multipleFormData.append("files", file);
+        });
+
+        const multipleUploadUrl = `${process.env.NEXT_PUBLIC_API_URL}/auth/update-profile-pictures`;
+
+        const multipleUploadResponse = await axios.put(
+          multipleUploadUrl,
+          multipleFormData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        console.log("Multiple image upload:", multipleUploadResponse.data);
+
+        // Update the state with the new uploaded images' URLs
+        setUploadedImageUrls(
+          multipleUploadResponse.data.profilePictureUrls || []
+        );
+
+        // Clear the multiple images preview
+        setMultipleFiles([]);
+        setMultiplePreviewUrls([]);
       }
     } catch (error) {
       if (axios.isAxiosError(error)) {
@@ -181,22 +238,67 @@ const BasicInfo = () => {
         />
         {previewUrl && (
           <div>
-            <img
+            <Image
               src={previewUrl}
               alt="Profile Preview"
+              width={100}
+              height={100}
               style={{ width: "100px", height: "100px", objectFit: "cover" }}
             />
+          </div>
+        )}
+        <input
+          type="file"
+          name="files"
+          accept="image/*"
+          multiple
+          onChange={handleMultipleFileChange}
+        />
+        {multiplePreviewUrls.length > 0 && (
+          <div>
+            {multiplePreviewUrls.map((url, index) => (
+              <Image
+                key={index}
+                src={url}
+                alt={`Preview ${index}`}
+                width={100}
+                height={100}
+                style={{ width: "100px", height: "100px", objectFit: "cover" }}
+              />
+            ))}
           </div>
         )}
         <button type="submit">Submit</button>
       </form>
       <div>
-        <p>single image</p>
-        <img
+        <p>Single image:</p>
+        <Image
           src={`${process.env.NEXT_PUBLIC_API_URL}/${formData.profilePictureUrl}`}
-          alt="Profile Preview"
+          alt="Profile"
+          width={100}
+          height={100}
           style={{ width: "100px", height: "100px", objectFit: "cover" }}
         />
+      </div>
+      <div>
+        <p>Multiple images:</p>
+        <div>
+          {uploadedImageUrls.map((url, index) => (
+            <Image
+              key={index}
+              src={`${process.env.NEXT_PUBLIC_API_URL}/${url}`}
+              alt={`Uploaded ${index}`}
+              width={100}
+              height={100}
+              style={{
+                width: "100px",
+                height: "100px",
+                objectFit: "cover",
+                margin: "5px",
+              }}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );
