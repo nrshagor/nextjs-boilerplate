@@ -2,16 +2,8 @@
 import { auth } from "@/app/utils/jwt";
 import axios from "axios";
 import { getCookie } from "cookie-handler-pro";
-import { jwtDecode } from "jwt-decode";
 import React, { useEffect, useState } from "react";
-export interface DecodedToken {
-  sub: number; // Example property types; adjust as per your JWT structure
-  email: string;
-  role: string;
-  iat: number;
-  exp: number;
-  [key: string]: any; // Allow for additional properties
-}
+
 const BasicInfo = () => {
   const [formData, setFormData] = useState({
     firstName: "",
@@ -21,9 +13,20 @@ const BasicInfo = () => {
     thana: "",
     postalCode: "",
     buildingAddress: "",
+    profilePictureUrl: "",
   });
 
   const userId = auth()?.sub;
+  const [file, setFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const selectedFile = e.target.files[0];
+      setFile(selectedFile);
+      setPreviewUrl(URL.createObjectURL(selectedFile));
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -47,6 +50,7 @@ const BasicInfo = () => {
             thana: userData.thana,
             postalCode: userData.postalCode,
             buildingAddress: userData.buildingAddress,
+            profilePictureUrl: userData.profilePictureUrl,
           });
         } catch (error) {
           if (axios.isAxiosError(error)) {
@@ -66,7 +70,7 @@ const BasicInfo = () => {
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
       const payload = {
@@ -81,6 +85,8 @@ const BasicInfo = () => {
 
       const url = `${process.env.NEXT_PUBLIC_API_URL}/auth/update-profile`;
       const token = getCookie("token");
+
+      // Update user information
       const response = await axios.put(url, payload, {
         headers: {
           "Content-Type": "application/json",
@@ -89,6 +95,23 @@ const BasicInfo = () => {
       });
 
       console.log("Profile update:", response.data);
+
+      // If a file is selected, upload it
+      if (file) {
+        const formData = new FormData();
+        formData.append("profilePictureUrl", file);
+
+        const uploadUrl = `${process.env.NEXT_PUBLIC_API_URL}/auth/update-profile-picture`;
+
+        const uploadResponse = await axios.put(uploadUrl, formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        console.log("Image upload:", uploadResponse.data);
+      }
     } catch (error) {
       if (axios.isAxiosError(error)) {
         console.error("Error response:", error.response?.data);
@@ -150,8 +173,31 @@ const BasicInfo = () => {
           value={formData.buildingAddress}
           onChange={handleInputChange}
         />
+        <input
+          type="file"
+          name="profilePictureUrl"
+          accept="image/*"
+          onChange={handleFileChange}
+        />
+        {previewUrl && (
+          <div>
+            <img
+              src={previewUrl}
+              alt="Profile Preview"
+              style={{ width: "100px", height: "100px", objectFit: "cover" }}
+            />
+          </div>
+        )}
         <button type="submit">Submit</button>
       </form>
+      <div>
+        <p>single image</p>
+        <img
+          src={`${process.env.NEXT_PUBLIC_API_URL}/${formData.profilePictureUrl}`}
+          alt="Profile Preview"
+          style={{ width: "100px", height: "100px", objectFit: "cover" }}
+        />
+      </div>
     </div>
   );
 };
