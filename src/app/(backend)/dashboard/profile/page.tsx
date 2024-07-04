@@ -1,7 +1,11 @@
 import React from "react";
-import BasicInfo from "./BasicInfo";
+import dynamic from "next/dynamic";
 
-const page = () => {
+const BasicInfo = dynamic(() => import("@/app/components/BasicInfo"), {
+  ssr: false,
+});
+
+const Page = () => {
   return (
     <div>
       <BasicInfo />
@@ -9,4 +13,4 @@ const page = () => {
   );
 };
 
-export default page;
+export default Page;

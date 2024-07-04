@@ -30,6 +30,9 @@ yarn-error.log*
 .env*.local
 .env
 
+#server
+server.js
+
 # vercel
 .vercel
 
